@@ -17,7 +17,7 @@ function fetchUsers() {
     // and FAILS randomly with an error message 
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (Math.random() < 0.0) {
+            if (Math.random() < 0.1) {
                 reject(new Error("Failed to fetch users."));
             } else resolve(users);
         }, 2000);
@@ -42,7 +42,7 @@ function fetchPosts(userId) {
     // and FAILS randomly with an error message
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (Math.random() < 0.0) {
+            if (Math.random() < 0.2) {
                 reject(new Error("Failed to fetch posts."));
             } else resolve(posts.filter(post => post.userId === userId));
         }, 4000);
@@ -67,7 +67,7 @@ function fetchComments(postIds) {
     // and FAILS randomly with an error message
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if (Math.random() < 0.0) {
+            if (Math.random() < 0.3) {
                 reject(new Error("Failed to fetch comments."));
             } else resolve(comments.filter(comment => postIds.includes(comment.postId)));
         }, 6000);
