@@ -119,23 +119,57 @@ function fetchDataInParallel() {
 
     fetchUsers().then(users => {
         console.log("Users fetched in parallel (Delay: 2 secs): ", users);
-    }).catch(error => {
-        console.error("Parallel Data Fetching Error for Users: ", error.message);
-    });
 
-    fetchPosts().then(posts => {
-        console.log("Posts fetched in parallel (Delay: 4 secs): ", posts);
-    }).catch(error => {
-        console.error("Parallel Data Fetching Error for Posts: ", error.message);
-    });
+        // Fetch posts for each user by triggering fetch in parallel
+        let postsPromises = users.map(user => fetchPosts(user.userId));
+        return Promise.all(postsPromises).then(postsByUsers => {
+        console.log ("Posts fetched for all users: ", postsByUsers);
+            // Fetch comments in parallel for the posts of each user
+            let commentsPromises = postsByUsers.map(posts => {
+                let postIds = posts.map(post => post.postId);
+                return fetchComments(postIds);
+            });
 
-    fetchComments().then(comments => {
-        console.log("Comments fetched in parallel (Delay: 6 secs): ", comments);
+            return Promise.all(commentsPromises).then(commentsByUsers => {
+                console.log ("Comments fetched for all users: ", commentsByUsers);
+
+                // Log data fetched in parallel for each user
+                users.forEach ((user, i) => {
+                    console.log(`User profile for userId-${user.userId}: `, user);
+                    console.log(`Posts of user for userId-${user.userId}: `, postsByUsers[i]);
+                    console.log(`Comments of user for userId-${user.userId}: `, commentsByUsers[i]);
+                });
+            });
+        });
     }).catch(error => {
-        console.error("Parallel Data Fetching Error for Comments: ", error.message);
+        console.error("Parallel Data Fetching Error: ", error.message);
     });
 
     console.timeEnd("Timer for Parallel Data Fetching"); // Timer ends in the async operations order
+    
+
+    // Code for non-correlated fetchUsers, fetchPosts, and fetchComments functions
+    //
+    // fetchUsers().then(users => {
+    //     console.log("Users fetched in parallel (Delay: 2 secs): ", users);
+    // }).catch(error => {
+    //     console.error("Parallel Data Fetching Error for Users: ", error.message);
+    // });
+
+    // fetchPosts().then(posts => {
+    //     console.log("Posts fetched in parallel (Delay: 4 secs): ", posts);
+    // }).catch(error => {
+    //     console.error("Parallel Data Fetching Error for Posts: ", error.message);
+    // });
+
+    // fetchComments().then(comments => {
+    //     console.log("Comments fetched in parallel (Delay: 6 secs): ", comments);
+    // }).catch(error => {
+    //     console.error("Parallel Data Fetching Error for Comments: ", error.message);
+    // });
+
+    // console.timeEnd("Timer for Parallel Data Fetching"); // Timer ends in the async operations order
+
 }
 
 fetchDataInParallel();
@@ -158,7 +192,7 @@ async function fetchDataInSequenceAsync() {
         console.log(`Posts fetched in sequence for userId-${userId} (Refactored with Async/Await) (Delay: 2 + 4 = 6 secs): `, posts);
 
         let postIds = posts.map(post => post.postId);
-        
+
         let comments = await fetchComments(postIds);
         console.log(`Comments fetched in sequence for posts of userId-${userId} (Refactored with Async/Await) (Delay: 2 + 4 + 6 = 12 secs): `, comments);
     } catch (error) {
@@ -176,34 +210,75 @@ async function fetchDataInParallelAsync() {
     console.time("Timer for Parallel Data Fetching (Refactored with Async/Await)"); // Timer starts 
     console.log("Parallel Data Fetching (Refactored with Async/Await)");
 
+    let userId = null;
+    let postIds = [];
+    
     (async () => {
         try {
             let users = await fetchUsers();
             console.log("Users fetched in parallel (Refactored with Async/Await) (Delay: 2 secs): ", users);
+            
+            // Assign a value to userId for demo
+            userId = users[0].userId; 
         } catch (error) {
             console.error("Parallel Data Fetching Error for Users (Refactored with Async/Await): ", error.message);
         }
     })();
 
-    (async () => {
+    let postsPromise = (async () => {
         try {
-            let posts = await fetchPosts();
-            console.log("Posts fetched in parallel (Refactored with Async/Await) (Delay: 4 secs): ", posts);
+            let posts = await fetchPosts(userId);
+            console.log(`Posts fetched in for userId-${userId} (Refactored with Async/Await): `, posts);
+            
+            postIds = posts.map(post => post.postId);
         } catch (error) {
             console.error("Parallel Data Fetching Error for Posts (Refactored with Async/Await): ", error.message);
         }
     })();
 
-    (async () => {
+    let commentsPromise = (async () => {
         try {
-            let comments = await fetchComments();
-            console.log("Comments fetched in parallel (Refactored with Async/Await) (Delay: 6 secs): ", comments);
+            await postsPromise;
+            let comments = await fetchComments(postIds);
+            console.log(`Comments fetched for posts of userId-${userId} (Refactored with Async/Await): `, comments);
         } catch (error) {
             console.error("Parallel Data Fetching Error for Comments (Refactored with Async/Await): ", error.message);
         };
     })();
 
     console.timeEnd("Timer for Parallel Data Fetching (Refactored with Async/Await)"); // Timer ends in the async operations order
+
+    // Code for non-correlated fetchUsers, fetchPosts, and fetchComments functions
+    //
+    // (async () => {
+    //     try {
+    //         let users = await fetchUsers();
+    //         console.log("Users fetched in parallel (Refactored with Async/Await) (Delay: 2 secs): ", users);
+    //     } catch (error) {
+    //         console.error("Parallel Data Fetching Error for Users (Refactored with Async/Await): ", error.message);
+    //     }
+    // })();
+
+    // (async () => {
+    //     try {
+    //         let posts = await fetchPosts();
+    //         console.log("Posts fetched in parallel (Refactored with Async/Await) (Delay: 4 secs): ", posts);
+    //     } catch (error) {
+    //         console.error("Parallel Data Fetching Error for Posts (Refactored with Async/Await): ", error.message);
+    //     }
+    // })();
+
+    // (async () => {
+    //     try {
+    //         let comments = await fetchComments();
+    //         console.log("Comments fetched in parallel (Refactored with Async/Await) (Delay: 6 secs): ", comments);
+    //     } catch (error) {
+    //         console.error("Parallel Data Fetching Error for Comments (Refactored with Async/Await): ", error.message);
+    //     };
+    // })();
+
+    // console.timeEnd("Timer for Parallel Data Fetching (Refactored with Async/Await)"); // Timer ends in the async operations order
+
 }
 
 fetchDataInParallelAsync();
