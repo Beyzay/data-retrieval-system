@@ -85,14 +85,22 @@ function fetchDataInSequence() {
     console.time("Timer for Sequential Data Fetching"); // Timer starts
     console.log("Sequential Data Fetching");
 
+    let userId;
+
     fetchUsers().then(users => {
         console.log("Users fetched in sequence (Delay: 2 secs): ", users);
-        return fetchPosts();
+        
+        // Assign a value to userId for demo
+        userId = users[0].userId; 
+
+        return fetchPosts(userId);
     }).then(posts => {
-        console.log("Posts fetched in sequence (Delay: 2 + 4 = 6 secs): ", posts);
-        return fetchComments();
+        console.log(`Posts fetched in sequence for userId-${userId} (Delay: 2 + 4 = 6 secs): `, posts);
+        
+        let postIds = posts.map(post => post.postId);
+        return fetchComments(postIds);
     }).then(comments => {
-        console.log("Comments fetched in sequence (Delay: 2 + 4 + 6 = 12): ", comments);
+        console.log(`Comments fetched in sequence for posts of userId-${userId} (Delay: 2 + 4 + 6 = 12): `, comments);
     }).catch(error => {
         console.error("Sequential Data Fetching Error: ", error.message);
     }).finally(() => {
@@ -143,11 +151,16 @@ async function fetchDataInSequenceAsync() {
         let users = await fetchUsers();
         console.log("Users fetched in sequence (Refactored with Async/Await) (Delay: 2 secs): ", users);
 
-        let posts = await fetchPosts();
-        console.log("Posts fetched in sequence (Refactored with Async/Await) (Delay: 2 + 4 = 6 secs): ", posts);
+        // Assign a value to userId for demo
+        let userId = users[0].userId; 
 
-        let comments = await fetchComments();
-        console.log("Comments fetched in sequence (Refactored with Async/Await) (Delay: 2 + 4 + 6 = 12 secs): ", comments);
+        let posts = await fetchPosts(userId);
+        console.log(`Posts fetched in sequence for userId-${userId} (Refactored with Async/Await) (Delay: 2 + 4 = 6 secs): `, posts);
+
+        let postIds = posts.map(post => post.postId);
+        
+        let comments = await fetchComments(postIds);
+        console.log(`Comments fetched in sequence for posts of userId-${userId} (Refactored with Async/Await) (Delay: 2 + 4 + 6 = 12 secs): `, comments);
     } catch (error) {
         console.error("Sequential Data Fetching Error (Refactored with Async/Await): ", error.message);
     } finally {
