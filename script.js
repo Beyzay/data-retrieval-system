@@ -225,29 +225,58 @@ async function getUsersContent() {
             // Group comments by postId
             let groupedCommentsByPost = {};
             for (let comment of comments) {
-                !groupedCommentsByPost[comment.postId]
-                    ? groupedCommentsByPost[comment.postId] = []
-                    : groupedCommentsByPost[comment.postId].push(comment);
+                if (!groupedCommentsByPost[comment.postId]) {
+                    groupedCommentsByPost[comment.postId] = [];
+                }
+                groupedCommentsByPost[comment.postId].push(comment);
             }
             
-            // Add the grouped comments to their respective posts based on postId
+            // Attach the grouped comments to their respective posts based on postId
             let postsWithComments = posts.map(post => ({
                 ...post,
                 comments: groupedCommentsByPost[post.postId] || []
             }));
-            // console.log(`Comments grouped by postId and added to their respective posts for userId-${user.userId} (getUsersContent): `, postsWithComments);
+            
+            // Log postsWithComments to verify successful data classification and merging (testing)
+            console.log(`Comments grouped by postId and added to their respective posts for userId-${user.userId} (getUsersContent): `, postsWithComments);
 
-            // Combine and log the results of each user's content
+            // Combine the results of each user's content
             let combinedResults = {
                 user,
                 posts: postsWithComments
             };
-            console.log("Users content with combined results (getUsersContent): ", combinedResults);
+
+            // Log combinedResults to verify successful data merging (testing)
+            console.log(`Users content with combined results for userId-${user.userId} (getUsersContent): `, combinedResults);
 
             // Return the combined results
             return combinedResults;
         }));
 
+        // Log final results for each user's content (formatted for readability)
+        // User
+        for (let userContent of usersContent) {
+            console.group(`User profile for userId-${userContent.user.userId}: `); // Starts user group
+            console.log(userContent.user);
+            
+            // Post
+            for (let post of userContent.posts) {
+                console.group(`Post for postId-${post.postId}: `); // Starts post group
+                console.log(post);
+                
+                // Comment
+                if (post.comments.length === 0) {
+                    console.log("0 comment for this post");
+                } else {
+                    for (let comment of post.comments) {
+                        console.log(`Comment for commentId-${comment.commentId}: `, comment);
+                    }
+                } 
+                console.groupEnd(); // Ends post group
+            }
+            console.groupEnd(); // Ends user group
+        }
+        
         return usersContent;
     } catch (error) {
         console.error("Sequential Data Fetching Error (getUsersContent: ", error.message);
